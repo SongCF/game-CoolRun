@@ -1,0 +1,300 @@
+package CoolRun;
+option optimize_for = LITE_RUNTIME;
+
+
+
+//***********        登陆        ***********//
+//平台类型
+enum PlatformType {
+    PlatformType_Invalid 	        = 0;	//无效类型
+    PlatformType_Common		        = 1;	//通用
+    PlatformType_10086_MM           = 2;	//移动MM
+    PlatformType_10086_JiDi         = 3;	//移动游戏基地
+    PlatformType_10010_DuanXin 		= 4;	//联通短信
+    PlatformType_10010_KuanDai 		= 5;	//联通宽带
+    PlatformType_10010_WO           = 6;	//联通沃
+    PlatformType_10000_TianYi       = 7;	//电信天翼
+    PlatformType_10000_AiYouXi      = 8;	//电信爱游戏
+    PlatformType_iTools             = 9;	//IOS_Itools
+    PlatformType_Kuaiyong           = 10;	//IOS_快用
+    PlatformType_PP                 = 11;	//IOS_pp助手
+    PlatformType_91                 = 12;	//IOS_91平台
+    PlatformType_cTalk_IOS          = 13;	//中手游_CTALK_IOS版本
+    PlatformType_cTalk_Android      = 14;	//中手游_CTALK_安卓版本
+    PlatformType_IOS_Appstore       = 15;	//IOS正版
+}
+
+//注册请求包
+message RegistReq { 
+    required PlatformType platform  = 1;    //平台型号
+    optional string account         = 2;    //账户名
+    optional string passwd          = 3;    //密码
+    optional string nickname        = 4;    //昵称
+}
+
+//注册回应包
+message RegistRsp { 
+    required int32 rsp_code         = 1;    
+    optional int32 user_id          = 2;    //系统分配的唯一ID
+}
+
+//登陆请求包
+message LoginReq { 
+    required int32 user_id          = 1;
+}
+
+//登陆回应包
+message LoginRsp { 
+    required int32 rsp_code         = 1; 
+    
+    optional int32 new_mail         = 2;    //是否有未读邮件 >0:有 (没有就没有新邮件)
+    
+    optional int32 last_group       = 3;    //上次结算时所在分组 (没有就没有奖励, 有就发送奖励)
+    optional int32 last_order       = 4;    //上次结算时排名
+}
+
+
+//更改信息请求包
+message AlterInfoReq { 
+    required int32 user_id          = 1;
+    optional string nickname        = 2;    //昵称
+}
+
+//更改信息回应包
+message AlterInfoRsp { 
+    required int32 rsp_code         = 1;    
+}
+
+//角色 宠物 魔法物基本信息
+message UnitInfo {
+    required int32 type             = 1;    //类型 
+    required bool is_activate       = 2;    //激活状态 true:已激活, false:未激活
+    required bool is_use            = 3;    //使用状态 true:已使用, false:未使用
+    optional int32 level            = 4;    //等级
+}
+
+//更新用户信息请求包
+message UpdateInfoReq {
+    required int32 user_id          = 1;
+    required int32 score            = 2;    //当前周期分数
+    required int32 distance         = 3;    //当前周期分数所对应的距离
+    repeated UnitInfo actor         = 4;    //角色
+    repeated UnitInfo pet           = 5;    //宠物
+    repeated UnitInfo magic         = 6;    //魔法物
+}
+
+//更新用户信息返回包
+message UpdateInfoRsp {
+    required int32 rsp_code         = 1;
+}
+
+
+
+//***********        邮件通知        ***********//
+//邮件类型
+enum MailType { 
+	MailType_Invalid 	            = 0;	//无效类型
+	MailType_Bonus 	                = 1;	//系统奖励
+	MailType_Notice 		        = 2;	//系统通知 
+	MailType_Friend 		        = 3;	//好友交互
+}
+
+//道具信息
+message ItemInfo { 
+    required int32 type             = 1;	//道具类型
+    required int32 count            = 2;	//道具数量
+}
+
+//附件信息
+message AttachInfo { 
+    repeated ItemInfo item          = 1;    //奖励的道具
+    optional int32 vitality         = 2;    //体力值
+}
+
+
+//单个邮件信息
+message MailInfo { 
+    required MailType type          = 1;	//MailType
+    required bool is_read           = 2;	//阅读状态 true:已读, false:未读
+    required int32 id               = 3;    //邮件ID
+    required int32 addresser_id     = 4;    //发件人ID 0:为系统, >0:玩家
+
+    optional AttachInfo attach      = 5;    //奖励
+    optional string addresser       = 6;    //发件人姓名
+    optional string content         = 7;    //邮件描述或者内容
+}
+
+//查询邮件请求包
+message QueryMailReq { 
+    required int32 user_id          = 1;    
+}
+
+//查询邮件返回包
+message QueryMailRsp { 
+    required int32 rsp_code         = 1;    
+    repeated MailInfo email         = 2;    //邮件
+}
+
+//阅读邮件请求包
+message ReadMailReq { 
+    required int32 user_id          = 1;  
+    required int32 id               = 2;    //邮件ID   
+}
+
+//阅读邮件返回包
+message ReadMailRsp { 
+    required int32 rsp_code         = 1;    
+}
+
+
+
+//***********        排行榜        ***********//
+//单个排行榜奖励信息
+message RankBonusInfo { 
+    required int32 id               = 1;    //排行榜奖励ID 
+    
+    optional int32 group_id         = 2;    //分组ID: 对应cs_common.h中的RankGroupID
+    optional string group_name      = 3;    //排名分组组名
+    
+    optional int32 bonus_id         = 4;    //组内奖励ID: 对应cs_common.h中的RankBonusID
+    optional AttachInfo attach      = 5;    //奖励
+}
+
+//单个排行榜用户信息
+message RankUserInfo { 
+    required int32 user_id          = 1;    //用户id
+    required int32 user_order       = 2;    //排名
+    required int32 score            = 3;    //入榜时的分数
+    required int32 distance         = 4;    //入榜时跑的距离
+    required UnitInfo actor         = 5;    //角色
+    
+    optional UnitInfo pet           = 6;    //宠物
+    optional UnitInfo magic         = 7;    //魔法物
+    optional string user_name       = 8;    //用户名
+}
+
+//查询排行榜奖励请求包
+message QueryRankBonusReq { 
+    required int32 stub             = 1;    //临时 
+}
+
+//查询排行榜奖励返回包
+message QueryRankBonusRsp { 
+    required int32 rsp_code         = 1;    
+    repeated RankBonusInfo bonus    = 2;    //奖励
+}
+
+//查询排行榜请求包
+message QueryRankListReq { 
+    required int32 user_id          = 1;  
+}
+
+//查询排行榜返回包
+message QueryRankListRsp { 
+    required int32 rsp_code         = 1;    
+    repeated RankUserInfo user_list = 2;    //玩家信息
+    
+    optional int32 cur_group        = 3;    //当前所在分组
+}
+
+
+
+//***********        系统奖励        ***********//
+//单个奖励信息
+message BonusInfo { 
+    required int32 id               = 1;    //奖励id
+    required bool is_get            = 2;	//是否领取奖励 false:未领取, true:已领取
+    required bool enable            = 3;	//是否可以领取奖励 false:不能领取 true:可以领取
+    
+    optional AttachInfo attach      = 4;    //奖励
+}
+
+
+//查询系统奖励请求包
+message QuerySystemBonusReq { 
+    required int32 user_id          = 1;    
+}
+
+//查询系统奖励返回包
+message QuerySystemBonusRsp { 
+    required int32 rsp_code         = 1;    
+    repeated BonusInfo bonus        = 2;    //奖励
+}
+
+
+//领取系统奖励请求包
+message GetSystemBonusReq { 
+    required int32 user_id          = 1;  
+    required int32 id               = 2;    //奖励id
+}
+
+//领取系统奖励返回包
+message GetSystemBonusRsp { 
+    required int32 rsp_code         = 1;    
+}
+
+
+
+//***********        礼包        ***********//
+//单个礼包信息
+message GiftBagAttach { 
+    required int32 weight           = 1;    //开出几率0-100 is_random=true时有效
+    optional AttachInfo attach      = 2;    //内容
+}
+
+//单个礼包信息
+message GiftBagInfo { 
+    required int32 id               = 1;    //礼包id
+    required bool is_random         = 2;    //true: 随机包 false: 礼包
+    
+    repeated GiftBagAttach attach   = 3;    //内容
+}
+
+
+//查询礼包请求包
+message QueryGiftBagReq { 
+    required string version         = 1;    //客户端礼包当前版本号
+}
+
+//查询礼包返回包
+message QueryGiftBagRsp { 
+    required int32 rsp_code         = 1;    
+    repeated GiftBagInfo gift_bag   = 2;    //礼包
+    
+    optional bool is_update         = 3;    //礼包模板表是否更新 true: 已更新 false: 未更新
+    optional string version         = 4;    //服务端礼包版本号
+}
+
+
+
+
+//**********************************************//
+//***********        其他命令        ***********//
+//**********************************************//
+
+//***********       统一分配ID       ***********//
+//统一分配请求包
+message UnifyReq { 
+    required PlatformType platform  = 1;    //平台型号
+    optional string account         = 2;    //账户名
+    optional string passwd          = 3;    //密码
+}
+
+//统一分配请求包
+message UnifyRsp { 
+    required int32 rsp_code         = 1;    
+    optional int32 user_id          = 2;    //系统分配的唯一ID
+}
+
+//***********       重新加载配置       ***********//
+//重新加载配置模板请求包
+message ReconfigureReq { 
+    required int32 type             = 1;    //重载类型: 对应load_data_template.h中的DataTempType
+}
+
+//重新加载配置模板返回包
+message ReconfigureRsp { 
+    required int32 rsp_code         = 1;    
+}
+
+

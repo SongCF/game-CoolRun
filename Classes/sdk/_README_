@@ -1,0 +1,4 @@
+//
+//anysdk集成了sharesdk的部分分享，但不包含Facebook...国外流行的社交软件。
+//项目需要有Facebook等的分享，所以国外发行版本需要自己集成sharesdk
+//
